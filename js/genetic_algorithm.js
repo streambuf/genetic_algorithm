@@ -1,25 +1,16 @@
-function Genetic(matix_throughput, size) {
+function Genetic(matix_throughput, pointA, pointB) {
 	this.matix_throughput = matix_throughput;
-	this.size = size;
 	this.population = [];
+	this.pointA = pointA;
+	this.pointB = pointB;
 }
 
 Genetic.prototype.findBestPath = function() {
-	this.population = this.generatePopulation();
-	this.sortByThroughput();
-	
-	arr1 = [0, 1];
-	arr11 = [0, 1];
-	arr2 = [0, 1, 2];
-	arr22 = [0, 4, 2];
-	arr3 = [0, 2, 1, 4, 5, 3];
-	arr33 = [0, 4, 1, 5, 2, 3];
-	arr4 = [0, 1, 2, 3, 4];
-	arr5 = [0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6];
-	arr6 = [0, 7, 8, 9, 10, 11 ,6, 0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6];
-	this.crossbreeding(arr3, arr33);
+	this.generatePopulation();
+	debugger;
+	//this.sortByThroughput();
+	//this.crossbreeding(arr3, arr33);
 };
-
 
 
 Genetic.prototype.crossbreeding = function(a, b) {
@@ -71,22 +62,40 @@ Genetic.prototype.countSumThroughput = function(array) {
 };
 
 Genetic.prototype.generatePopulation = function() {
-	var arr = []
-	for (var i = 0; i < this.size; ++i) {
-		arr[i] = this.generateChromosome();
+	for (var i = 1; i < this.matix_throughput.length; ++i) {
+		var arr = [];
+		var count_chromosomes = Math.ceil(Math.log(i)) + 1;
+		if (count_chromosomes % 2 == 1)
+			count_chromosomes += 1;
+		for (var j = 0; j < count_chromosomes; ++j) {
+			arr.push(this.generateChromosome(i - 1));
+		}
+		this.population.push(arr);
 	}
-	return arr;
 };
 
-Genetic.prototype.generateChromosome = function() {
+Genetic.prototype.generateChromosome = function(size) {
 	var arr = []
-	for (var i = 0; i < this.size; ++i) {
+	for (var i = 0; i < this.matix_throughput.length; ++i) {
 		arr[i] = i;
 	}
+	arr.splice(this.pointA, 1);
+	arr.splice(this.pointB - 1, 1);
 	shuffle(arr);
-	arr.push(arr[0]);
-	return arr;
+	var res = []
+	res.push(this.pointA);
+	for (var i = 0; i < size; ++i) {
+		res.push(arr[i]);
+	}
+	res.push(this.pointB);
+	return res;
 };
+
+function swap(array, ind1, ind2) {
+	var tmp = array[ind1];
+	array[ind1] = array[int2];
+	array[ind2] = tmp;
+}
 
 function shuffle(o){
     for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);

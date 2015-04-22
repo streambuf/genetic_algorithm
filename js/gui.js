@@ -1,18 +1,17 @@
 jQuery(document).ready(function(){
     $('#canvas').attr('height', $('#canvas').css('height'));
     $('#canvas').attr('width', $('#canvas').css('width'));
-    var ctx = $("#canvas")[0].getContext('2d');
+    var canvas = $("#canvas")[0];
+    var ctx = canvas.getContext('2d');
     var points = [];
+    var selected_points = [];
     var modes = Object.freeze({'BUILD': 1, 'CHOICE': 2});
     var mode = modes.BUILD;
 
     (function(){
         var mat = [[0,2,3,4,5,6], [2,0,5,6,2,2], [3,5,0,1,5,1], [4,6,1,0,3,2], [5,2,5,3,0,4], [6,2,1,2,4,0]];
-        var genetic = new Genetic(mat, 6);
-        genetic.findBestPath();
+
     }());
-
-
   
     $("#canvas").click(function(e){ 
 
@@ -20,30 +19,13 @@ jQuery(document).ready(function(){
         var y = e.pageY - this.offsetTop; 
 
         if (mode == modes.BUILD) {
-            // draw point
-            ctx.beginPath();
-            ctx.arc(x, y, 10,0, 2*Math.PI);
-            ctx.stroke();
-        	ctx.fillStyle="black";
-        	ctx.fill();
-        	points.push({x:x, y:y});
-        	
-        	var lastPoint = points.length - 1;
-
-            // draw lines (point to point)
-        	for(var i = 0; i < lastPoint; ++i) {
-        		ctx.beginPath();
-        		ctx.moveTo(points[lastPoint].x,points[lastPoint].y);
-        		ctx.lineTo(points[i].x,points[i].y);
-        		ctx.stroke();
-        		drawLabel(ctx, i, points[i], points[i], 'white');
-        	}
-        	drawLabel(ctx, lastPoint, points[lastPoint], points[lastPoint], 'white');
+            points.push({x:x, y:y});
+            redraw();
         
         } else if (mode == modes.CHOICE) {
             for (var i = 0; i < points.length; ++i) {
                 if (Math.sqrt((x-points[i].x)*(x-points[i].x) + (y-points[i].y)*(y-points[i].y)) < 10) {
-                    alert(11);
+                    selectNode(i);
                 }
             }
         }
@@ -52,6 +34,7 @@ jQuery(document).ready(function(){
    
     $("#create_matrix").click(function(){
         mode = modes.CHOICE;
+        drawLabels();
         var size = points.length;
     	var table = $('<table></table>').addClass('table table-bordered');
 
@@ -81,11 +64,14 @@ jQuery(document).ready(function(){
         }
         $('#matrix_area').append(table);
 
-        $('#find').removeClass('hidden');
-
 	});
 
     $("#find").click(function(){
+        if (selected_points.length < 2) {
+            alert("Не выбраны узлы для передачи пакета");
+            return;
+        }
+
         var lastPoint = points.length - 1;
         var matrix = parseMatrix(lastPoint + 1);
         
@@ -97,9 +83,73 @@ jQuery(document).ready(function(){
             }
         }
 
-    });   
+        a = selected_points[0];
+        b = selected_points[1];
+        if (a > b) { // swap
+            a = [b, b = a][0];
+        }   
+        var genetic = new Genetic(matrix, a, b);
+        genetic.findBestPath();
+
+    }); 
+
+    function selectNode(index) {
+        ctx.beginPath();
+        ctx.arc(points[index].x, points[index].y, 10,0, 2*Math.PI, true);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle="red";
+        ctx.stroke();
+        if (selected_points.length > 1) {
+            ctx.beginPath();
+            ctx.arc(points[selected_points[0]].x, points[selected_points[0]].y, 10,0, 2*Math.PI, true);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle="black";
+            ctx.stroke();
+            selected_points[0] = selected_points[1];
+            selected_points.splice(0, 1);
+            
+        }
+        selected_points.push(index);
+    }
+    
+    
+
+    function redraw(x, y) {
+        //clear
+        ctx.clearRect ( 0 , 0 , canvas.width, canvas.height );
+        // draw point
+        for (var i = 0; i < points.length; ++ i) {
+            var x = points[i].x;
+            var y = points[i].y;
+
+            ctx.beginPath();
+            ctx.arc(x, y, 10,0, 2*Math.PI);
+            ctx.stroke();
+            ctx.fillStyle="black";
+            ctx.fill();
+            
+            
+            // draw lines (point to point)
+            for(var j = i + 1; j < points.length; ++j) {
+                ctx.beginPath();
+                ctx.moveTo(points[i].x,points[i].y);
+                ctx.lineTo(points[j].x,points[j].y);
+                ctx.stroke();
+               
+            }
+
+        }
+    }
+
+    function drawLabels() {
+        for (var i = 0; i < points.length; ++ i) {
+            drawLabel(ctx, i, points[i], points[i], 'white');
+        }
+    }  
    
 })
+
+
 
 function parseMatrix(size){
     var matrix = []
@@ -132,7 +182,6 @@ function drawLabel(ctx, text, p1, p2, color, alignment, padding ){
     if (!alignment) alignment = 'center';
     if (!padding) padding = 0;
     if (!color) color = 'blue';
-
     var dx = p2.x - p1.x;
     var dy = p2.y - p1.y;   
     var p, pad;

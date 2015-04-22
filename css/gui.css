@@ -6,9 +6,18 @@ canvas {
 	border:1px solid;
 }
 
-.margin {
-	margin-top: 10px;
+.menu {
+	position: fixed;
+	right: 0;
+	top: 50%;
+	width: 28em;
+	margin-top: -15.0em;
+
+}
+
+.item {
 	margin-bottom: 10px;
+	width: 28em;
 }
 
 .hidden {
