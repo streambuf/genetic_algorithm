@@ -1,0 +1,16 @@
+.small {
+	width: 100%;
+}
+
+canvas {
+	border:1px solid;
+}
+
+.margin {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+.hidden {
+	display: none;
+}
