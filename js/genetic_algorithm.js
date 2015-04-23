@@ -3,15 +3,63 @@ function Genetic(matix_throughput, pointA, pointB) {
 	this.population = [];
 	this.pointA = pointA;
 	this.pointB = pointB;
+	this.mutation_probability = 5; // %
 }
 
 Genetic.prototype.findBestPath = function() {
 	this.generatePopulation();
-	debugger;
-	//this.sortByThroughput();
-	//this.crossbreeding(arr3, arr33);
+	this.sortByThroughput();
+	var best_path = this.getBestPath();
+	for (var i = 0; i < 1000; ++i) {
+		this.crossbreedingPopulatioin();
+		this.sortByThroughput();
+		cur_best_path = this.getBestPath();
+		if (this.compareBestPath(best_path, cur_best_path)) {
+			best_path = cur_best_path;
+		}
+		this.mutationPopulatioin();
+		this.sortByThroughput();
+		cur_best_path = this.getBestPath();
+		if (this.compareBestPath(best_path, cur_best_path)) {
+			best_path = cur_best_path;
+		}
+		
+	}
+	alert(best_path);
 };
 
+Genetic.prototype.compareBestPath = function(a, b) {
+	if (this.countSumThroughput(a) > this.countSumThroughput(b)) {
+		return false;
+	}
+	return true;
+}
+
+
+Genetic.prototype.getBestPath = function() {
+	var best_path = this.population[0][0];
+	//console.log(best_path);
+	for (var i = 1; i < this.population.length; ++i) {
+		var cur_path = this.population[i][0]
+		//console.log(cur_path);
+		if (this.countSumThroughput(best_path) > this.countSumThroughput(cur_path)) {
+			best_path = cur_path;
+		}
+		//alert(this.countSumThroughput(this.population[i][0]));
+		//alert(this.countSumThroughput(this.population[i][1]));
+	}
+	
+	//console.log('\n');
+	return best_path;
+};
+
+Genetic.prototype.crossbreedingPopulatioin = function() {
+	for (var i = 0; i < this.population.length; ++i) {
+		for (var j = 0; j < this.population[i].length; j += 2) {
+			this.crossbreeding(this.population[i][j], this.population[i][j+1]);
+		}
+	}
+}
 
 Genetic.prototype.crossbreeding = function(a, b) {
 	var range = a.length / 2 - 1;
@@ -25,25 +73,65 @@ Genetic.prototype.crossbreeding = function(a, b) {
 	exchangeElementArray(a, b, x + y, a.length - x - y - 1, true);
 };
 
-Genetic.prototype.mutation = function(a, b) {
-	console.log(a);
-	console.log(b);
-	if (this.size < 3) return;
-	new_node = randomNumberFromRange(1, this.size - 1);
-	new_index = randomNumberFromRange(1, this.size - 1);
-	
+Genetic.prototype.mutationPopulatioin = function() {
+	for (var i = 0; i < this.population.length; ++i) {
+		for (var j = 0; j < this.population[i].length; ++j) {
+			if (this.mutationProbability()) {
+				this.mutation(this.population[i][j]);
+			}
+		}
+	}
+}
 
+Genetic.prototype.mutation = function(chromosome) {
+	if (chromosome.length < 3) return;
+	
+	var arr = []
+	for (var i = 0; i < this.matix_throughput.length; ++i) {
+		arr[i] = i;
+	}
+
+	arr.splice(this.pointA, 1);
+	arr.splice(this.pointB - 1, 1);
+
+	var rand = [];
+	for (var i = 0; i < arr.length; ++i) {
+	 	if (chromosome.indexOf(arr[i]) == -1) {
+	 		rand.push(arr[i]);
+	 	}  
+	}
+
+	chromosome_index = randomNumberFromRange(1, chromosome.length - 2);
+	
+	if (rand.length > 0) {
+		var rand_index = randomNumberFromRange(0, rand.length - 1);
+		chromosome[chromosome_index] = rand[rand_index];
+	} else {
+		var ind1 = randomNumberFromRange(1, chromosome.length - 2);
+		var ind2 = randomNumberFromRange(1, chromosome.length - 2);
+		swap(chromosome, ind1, ind2);
+	}
+}
+
+Genetic.prototype.mutationProbability = function() {
+	var random = randomNumberFromRange(1, 100);
+	if (random <= this.mutation_probability) {
+		return true;
+	}
+	return false;
 }
 
 Genetic.prototype.sortByThroughput = function() {
-	for (var i = this.size - 1; i > 0; --i) {
-		for (var j = 0; j < i; ++j) {
-			var a = this.population[j];
-			var b = this.population[j+1];
-			if (this.compareSumThoughput(a, b) > 0) {
-				var tmp = this.population[j];
-				this.population[j] = this.population[j+1];
-				this.population[j+1] = tmp;
+	for (var k = 0; k < this.population.length; ++k) {
+		for (var i = this.population[k].length - 1; i > 0; --i) {
+			for (var j = 0; j < i; ++j) {
+				var a = this.population[k][j];
+				var b = this.population[k][j+1];
+				if (this.compareSumThoughput(a, b) > 0) {
+					var tmp = this.population[k][j];
+					this.population[k][j] = this.population[k][j+1];
+					this.population[k][j+1] = tmp;
+				}
 			}
 		}
 	}
@@ -55,8 +143,8 @@ Genetic.prototype.compareSumThoughput = function(a, b) {
 
 Genetic.prototype.countSumThroughput = function(array) {
 	var sum = 0;
-	for (var i = 0; i < this.size; ++i) {
-		sum += this.matix_throughput[array[i]][array[i+1]];
+	for (var i = 0; i < array.length - 1; ++i) {
+		sum += parseInt(this.matix_throughput[array[i]][array[i+1]]);
 	}
 	return sum;
 };
@@ -93,7 +181,7 @@ Genetic.prototype.generateChromosome = function(size) {
 
 function swap(array, ind1, ind2) {
 	var tmp = array[ind1];
-	array[ind1] = array[int2];
+	array[ind1] = array[ind2];
 	array[ind2] = tmp;
 }
 
@@ -116,8 +204,6 @@ function exchangeElementArray(a, b, x, y, reverse) {
 		part_b.reverse();
 	}
 
-	console.log(part_a);
-	console.log(part_b);
 	a.splice.apply(a, [x, 0].concat(part_b));
 	a.splice.apply(b, [x, 0].concat(part_a));
 }

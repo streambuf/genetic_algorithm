@@ -8,11 +8,7 @@ jQuery(document).ready(function(){
     var modes = Object.freeze({'BUILD': 1, 'CHOICE': 2});
     var mode = modes.BUILD;
 
-    (function(){
-        var mat = [[0,2,3,4,5,6], [2,0,5,6,2,2], [3,5,0,1,5,1], [4,6,1,0,3,2], [5,2,5,3,0,4], [6,2,1,2,4,0]];
-
-    }());
-  
+ 
     $("#canvas").click(function(e){ 
 
         var x = e.pageX - this.offsetLeft;
@@ -148,8 +144,6 @@ jQuery(document).ready(function(){
     }  
    
 })
-
-
 
 function parseMatrix(size){
     var matrix = []
