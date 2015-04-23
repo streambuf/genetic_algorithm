@@ -3,54 +3,63 @@ function Genetic(matix_throughput, pointA, pointB) {
 	this.population = [];
 	this.pointA = pointA;
 	this.pointB = pointB;
-	this.mutation_probability = 5; // %
+	this.mutation_probability = 10; // %
 }
 
-Genetic.prototype.findBestPath = function() {
+Genetic.prototype.findBestPath = function(callback) {
 	this.generatePopulation();
 	this.sortByThroughput();
 	var best_path = this.getBestPath();
+	var best_thoughput = this.countSumThroughput(best_path);
 	for (var i = 0; i < 1000; ++i) {
+
 		this.crossbreedingPopulatioin();
 		this.sortByThroughput();
-		cur_best_path = this.getBestPath();
-		if (this.compareBestPath(best_path, cur_best_path)) {
+		var cur_best_path = this.getBestPath();
+		var cur_thoughput = this.countSumThroughput(cur_best_path);
+
+		if (cur_thoughput < best_thoughput) {
+			best_thoughput = cur_thoughput;
 			best_path = cur_best_path;
 		}
+
 		this.mutationPopulatioin();
 		this.sortByThroughput();
 		cur_best_path = this.getBestPath();
-		if (this.compareBestPath(best_path, cur_best_path)) {
+		cur_thoughput = this.countSumThroughput(cur_best_path);
+
+		if (cur_thoughput < best_thoughput) {
+			best_thoughput = cur_thoughput;
 			best_path = cur_best_path;
 		}
+
+		console.log(this.countSumThroughput(best_path));
 		
 	}
-	alert(best_path);
+
+	callback(best_path);
+	console.log(this.countSumThroughput(best_path));
 };
 
 Genetic.prototype.compareBestPath = function(a, b) {
+
 	if (this.countSumThroughput(a) > this.countSumThroughput(b)) {
-		return false;
+		console.log(this.countSumThroughput(a) + ' ' + this.countSumThroughput(b));
+		return true;
 	}
-	return true;
+	return false;
 }
 
 
 Genetic.prototype.getBestPath = function() {
-	var best_path = this.population[0][0];
-	//console.log(best_path);
+	var best_path = this.population[0][0].slice(0);
 	for (var i = 1; i < this.population.length; ++i) {
-		var cur_path = this.population[i][0]
-		//console.log(cur_path);
+		var cur_path = this.population[i][0];
 		if (this.countSumThroughput(best_path) > this.countSumThroughput(cur_path)) {
-			best_path = cur_path;
+			best_path = cur_path.slice(0);
 		}
-		//alert(this.countSumThroughput(this.population[i][0]));
-		//alert(this.countSumThroughput(this.population[i][1]));
 	}
-	
-	//console.log('\n');
-	return best_path;
+	return best_path.reverse();
 };
 
 Genetic.prototype.crossbreedingPopulatioin = function() {

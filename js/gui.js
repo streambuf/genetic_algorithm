@@ -48,7 +48,7 @@ jQuery(document).ready(function(){
             var rowData = $('<td>' + i +'</td>');
             row.append(rowData);
       		for (var j = 0; j < i; j++) {
-                var input = '<input class="small" type="text" value="' +  randomNumberFromRange(1, 20) +'">';
+                var input = '<input class="small" type="text" value="' +  randomNumberFromRange(1, 999) +'">';
       			var rowData = $('<td>' + input +'</td>');
       			row.append(rowData);
       		}
@@ -67,7 +67,8 @@ jQuery(document).ready(function(){
             alert("Не выбраны узлы для передачи пакета");
             return;
         }
-
+        redraw();
+        drawLabels();
         var lastPoint = points.length - 1;
         var matrix = parseMatrix(lastPoint + 1);
         
@@ -85,9 +86,22 @@ jQuery(document).ready(function(){
             a = [b, b = a][0];
         }   
         var genetic = new Genetic(matrix, a, b);
-        genetic.findBestPath();
+        genetic.findBestPath(showBestPath);
 
     }); 
+
+    function showBestPath(path) {
+        ctx.lineWidth = 2;
+        ctx.strokeStyle="red";
+        for (var i = 0; i < path.length - 1; ++i) {
+            ctx.beginPath();
+            ctx.moveTo(points[path[i]].x,points[path[i]].y);
+            ctx.lineTo(points[path[i+1]].x,points[path[i+1]].y);
+            ctx.stroke();
+        }
+        ctx.strokeStyle="black";
+        ctx.lineWidth = 1;
+    }
 
     function selectNode(index) {
         ctx.beginPath();
@@ -95,11 +109,12 @@ jQuery(document).ready(function(){
         ctx.lineWidth = 2;
         ctx.strokeStyle="red";
         ctx.stroke();
+        ctx.strokeStyle="black";
+        ctx.lineWidth = 1;
         if (selected_points.length > 1) {
             ctx.beginPath();
             ctx.arc(points[selected_points[0]].x, points[selected_points[0]].y, 10,0, 2*Math.PI, true);
             ctx.lineWidth = 2;
-            ctx.strokeStyle="black";
             ctx.stroke();
             selected_points[0] = selected_points[1];
             selected_points.splice(0, 1);
